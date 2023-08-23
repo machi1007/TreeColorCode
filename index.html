@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+      <html>
+      <head>
+        <title>大樹調色盤（色碼轉換器）</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js"></script>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+          }
+          @media (min-width: 768px) {
+                #container {
+                  width: 50%;
+                }
+              }
+              
+          @media (min-width: 1200px) {
+                #container {
+                  width: 30%;
+                }
+              }
+          
+          #container {
+            margin: 100px auto;
+            width: 300px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+          }
+          h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+          }
+          #colorPreview {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+          }
+          p {
+            font-size: 14px;
+          }
+          input[type="text"] {
+            width: 100%;
+            margin: 10px 0;
+            padding: 5px;
+          }
+          button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="container">
+          <h1>大樹調色盤（色碼轉換器）</h1>
+          <h4>（請選擇顏色或輸入色碼）</h4>
+          <h5>範例：#600030、rgb(255,85,85)、CMYK(17,8,0,29)</h5>
+          <input type="text" id="colorPicker" value="#FFFFFF" />
+          <input type="text" id="colorInput" placeholder="輸入 HEX、RGB 或 CMYK 色碼">
+          <button onclick="generateColor()">色碼轉換</button>
+          <div id="colorPreview"></div>
+          <p id="colorHex">HEX：#FFFFFF</p>
+          <p id="colorRgb">RGB：rgb(255, 255, 255)</p>
+          <p id="colorCmyk">CMYK：0, 0, 0, 0</p>
+        </div>
+        
+        <script>
+          $("#colorPicker").spectrum({
+            preferredFormat: "rgb",
+            change: function(color) {
+              var colorPreview = $('#colorPreview');
+              var colorHex = $('#colorHex');
+              var colorRgb = $('#colorRgb');
+              var colorCmyk = $('#colorCmyk');
+              
+              var hex = color.toHexString();
+              var rgb = color.toRgbString();
+              var cmyk = rgbToCmyk(color._r, color._g, color._b);
+              
+              colorPreview.css('background-color', hex);
+              colorHex.text('HEX：' + hex);
+              colorRgb.text('RGB：' + rgb);
+              colorCmyk.text('CMYK：' + cmyk);
+            }
+          });
+      
+          function generateColor() {
+            var input = $('#colorInput').val().toUpperCase();
+            var colorPreview = $('#colorPreview');
+            var colorHex = $('#colorHex');
+            var colorRgb = $('#colorRgb');
+            var colorCmyk = $('#colorCmyk');
+            
+            var color = parseColor(input);
+            var hex = color.toHexString();
+            var rgb = color.toRgbString();
+            var cmyk = rgbToCmyk(color._r, color._g, color._b);
+            
+            colorPreview.css('background-color', hex);
+            colorHex.text('HEX：' + hex);
+            colorRgb.text('RGB：' + rgb);
+            colorCmyk.text('CMYK：' + cmyk);
+          }
+      
+          function parseColor(input) {
+            if (input.startsWith('#')) {
+              return tinycolor(input);
+            } else if (input.startsWith('RGB(')) {
+              var values = input.match(/\d+/g);
+              return tinycolor({ r: values[0], g: values[1], b: values[2] });
+            } else if (input.startsWith('CMYK(')) {
+              var values = input.match(/\d+/g);
+              var c = values[0] / 100;
+              var m = values[1] / 100;
+              var y = values[2] / 100;
+              var k = values[3] / 100;
+              var rgb = cmykToRgb(c, m, y, k);
+              return tinycolor({ r: rgb[0], g: rgb[1], b: rgb[2] });
+            }
+            return tinycolor('#FFFFFF');
+          }
+      
+          function cmykToRgb(c, m, y, k) {
+            var r = 255 * (1 - c) * (1 - k);
+            var g = 255 * (1 - m) * (1 - k);
+            var b = 255 * (1 - y) * (1 - k);
+            return [r, g, b];
+          }
+      
+          function rgbToCmyk(r, g, b) {
+            var c = 1 - (r / 255);
+            var m = 1 - (g / 255);
+            var y = 1 - (b / 255);
+            var k = Math.min(c, m, y);
+            
+            c = (c - k) / (1 - k);
+            m = (m - k) / (1 - k);
+            y = (y - k) / (1 - k);
+      
+            return Math.round(c * 100) + ', ' + Math.round(m * 100) + ', ' + Math.round(y * 100) + ', ' + Math.round(k * 100);
+                }
+              </script>
+            </body>
+            </html>
